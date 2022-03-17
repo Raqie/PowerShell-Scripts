@@ -6,6 +6,7 @@ $ext10 = Get-ADuser -Filter { EmailAddress -eq $mail } -Properties @("extensiona
 $mobile = Get-ADuser -Filter { EmailAddress -eq $mail } -Properties Mobile | Select-Object Mobile
 $sam = Get-ADuser -Filter { EmailAddress -eq $mail } -Properties sAMAccountName | Select -exp sAMAccountName
 $country = get-aduser $sam -Properties co | select -exp co #user country
+$diststring= get-aduser $sam -Properties distinguishedname | select distinguishedname | %{$_ -replace 'distinguishedname',''} | %{$_ -replace '@{=',''} | %{$_ -replace '}',''}
 
 Get-ADuser -Filter { EmailAddress -eq $mail } -Properties @("extensionattribute9", "extensionattribute10", "extensionattribute14", "mobile")
 
@@ -59,6 +60,16 @@ if ($country -match "United Kingdom of Great Britain and Northern Ireland") {
     $country = "UK"
 }
 else {}
+#If groups contains ICS or IGT
+if($diststring -like '*ICS*'){
+    $country = $country + "_ICS"
+}
+elseif($diststring -like '*IGT*'){
+    $country = $country + "_IGT"
+}
+else{
+    Write-Host "Program has not found ICS or IGT in OU of user $sam" -ForegroundColor Red
+}
 
 $whichgroups = Read-Host -Prompt "1.visiblevpn 2.hiddenvpn 3.visiblectx 4.hiddenctx" 
 
